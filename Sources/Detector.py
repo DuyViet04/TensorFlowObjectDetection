@@ -5,7 +5,7 @@ from tensorflow.lite.python.interpreter import Interpreter
 
 input_mean = 127.5
 input_std = 127.5
-def DetectObject(imgPath, threshold):
+def DetectImage(ImageToDetect, threshold):
     lblpath = '../ModelObjectDetections/SSDMobileNetv2/saved_model/labelmap.pbtxt'
     with open(lblpath, 'r') as f:
         labels = [line.strip() for line in f.readlines()]
@@ -19,7 +19,7 @@ def DetectObject(imgPath, threshold):
     height = input_details[0]['shape'][1]
     width = input_details[0]['shape'][2]
 
-    ImageToDetect = cv2.imread(imgPath)
+    #ImageToDetect = cv2.imread(imgPath)
     imH, imW, _ = ImageToDetect.shape
     '''Tiền xử lý để đưa ảnh vào model'''
     resized_image = cv2.resize(ImageToDetect, (width, height))
@@ -59,9 +59,6 @@ def DetectObject(imgPath, threshold):
             label = '%s: %d%%' % (ObjectName, int(scores[i] * 100))
             labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)
             label_ymin = max(ymin, labelSize[1] + 10)
-            cv2.putText(ImageToDetect, label, (xmin, label_ymin - 7), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0),2)  # Draw label text
+            cv2.putText(ImageToDetect, label, (xmin, label_ymin - 7), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (256, 256, 256),2)  # Draw label text
 
     return ImageToDetect
-
-cv2.imshow('DetectedImage',DetectObject('../Assets/ImageCaptured/TheSVBao.jpg',0.25))
-cv2.waitKey(0)
