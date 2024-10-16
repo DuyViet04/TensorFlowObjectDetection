@@ -23,10 +23,39 @@ labels = ['__background__', 'person', 'bicycle', 'car', 'motorcycle', 'airplane'
           'remote', 'keyboard', 'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator',
           'book', 'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush']
 
-camera = cv2.VideoCapture(0)
-camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 640)
+Image_Path= '../Assets/ImageCaptured/TheSVBao.jpg'
+image = cv2.imread(Image_Path)
+image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+input_tensor = tf.convert_to_tensor(image_rgb)
+input_tensor = input_tensor[tf.newaxis, ...]
 
+# Thực hiện phát hiện đối tượng
+detections = model(input_tensor)
+#
+num_detections = int(detections.pop('num_detections'))
+detections = {key: value[0, :num_detections].numpy() for key, value in detections.items()}
+detections['num_detections'] = num_detections
+# Các nhãn và hộp giới hạn
+detection_classes = detections['detection_classes'].astype(np.int64)
+detection_boxes = detections['detection_boxes']
+detection_scores = detections['detection_scores']
+
+
+# Vẽ hộp giới hạn lên ảnh
+for i in range(num_detections):
+    if detection_scores[i] >= 0.5:  # Ngưỡng tin cậy
+        box = detection_boxes[i]
+        h, w, _ = image.shape
+        ymin, xmin, ymax, xmax = box
+        start_point = (int(xmin * w), int(ymin * h))
+        end_point = (int(xmax * w), int(ymax * h))
+        cv2.rectangle(image, start_point, end_point, (0, 255, 0), 2)
+
+# Hiển thị ảnh
+cv2.imshow('Detected Objects', image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+"""
 if not camera.isOpened():
     print("Error: Could not open camera.")
     exit()
@@ -64,3 +93,4 @@ while True:
         break
 camera.release()
 cv2.destroyAllWindows()
+"""
