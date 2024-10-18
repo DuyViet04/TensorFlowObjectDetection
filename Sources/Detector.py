@@ -45,20 +45,19 @@ def DetectImage(ImageToDetect, threshold):
 
     # Visualize results on the image
     for i in range(len(scores)):
-        print(scores[i])
-        print(classes[i])
-        if scores[i] > threshold:  # Display only if confidence > 0.5
+        if scores[i] > threshold:
             ymin = int(max(1, (boxes[i][0] * imH)))
             xmin = int(max(1, (boxes[i][1] * imW)))
             ymax = int(min(imH, (boxes[i][2] * imH)))
             xmax = int(min(imW, (boxes[i][3] * imW)))
             cv2.rectangle(ImageToDetect, (xmin,ymin), (xmax,ymax), (10, 255, 0), 2)
-            print("phat hien co the")
 
-            ObjectName = labels[1]
+            ObjectName = labels[int(classes[i])]
+            print(f'{classes[i]}:{ObjectName}')
             label = '%s: %d%%' % (ObjectName, int(scores[i] * 100))
             labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)
             label_ymin = max(ymin, labelSize[1] + 10)
             cv2.putText(ImageToDetect, label, (xmin, label_ymin - 7), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (256, 256, 256),2)  # Draw label text
 
     return ImageToDetect
+

@@ -19,8 +19,8 @@ class StudentCardDetector(App):
     def update(self,dt):
         ret, frame = self.CameraCaptureSource.read()
         if ret:
-            print('+1')
-            DetectedFrame = DetectImage(frame,0.25)
+            print('----------------------------')
+            DetectedFrame = DetectImage(ImageToDetect= frame , threshold= 0.5)
             buf = cv2.flip(DetectedFrame, 0).tostring()
             image_texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
             image_texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
