@@ -6,7 +6,7 @@ from tensorflow.lite.python.interpreter import Interpreter
 input_mean = 127.5
 input_std = 127.5
 def DetectImage(ImageToDetect, threshold):
-    lblpath = '../ModelObjectDetections/SSDMobileNetv2/saved_model/labelmap.pbtxt'
+    lblpath = '../ModelObjectDetections/SSDMobileNetv2/saved_model/labelmap.txt'
     with open(lblpath, 'r') as f:
         labels = [line.strip() for line in f.readlines()]
     '''Load the TFLite model'''
@@ -55,7 +55,7 @@ def DetectImage(ImageToDetect, threshold):
             cv2.rectangle(ImageToDetect, (xmin,ymin), (xmax,ymax), (10, 255, 0), 2)
             print("phat hien co the")
 
-            ObjectName = labels[2+5*i]
+            ObjectName = labels[1]
             label = '%s: %d%%' % (ObjectName, int(scores[i] * 100))
             labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)
             label_ymin = max(ymin, labelSize[1] + 10)
