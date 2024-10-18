@@ -22,7 +22,8 @@ def DetectImage(ImageToDetect, threshold):
     #ImageToDetect = cv2.imread(imgPath)
     imH, imW, _ = ImageToDetect.shape
     '''Tiền xử lý để đưa ảnh vào model'''
-    resized_image = cv2.resize(ImageToDetect, (width, height))
+    image_rgb = cv2.cvtColor(ImageToDetect, cv2.COLOR_BGR2RGB)
+    resized_image = cv2.resize(image_rgb, (width, height))
     input_ImageData = np.expand_dims(resized_image, axis=0)
             # Normalize the image if required (depends on model)
     bFloatInput = (input_details[0]['dtype'] == np.float32)
