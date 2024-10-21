@@ -13,7 +13,7 @@ class StudentCardDetector(App):
         self.DisplayImage = Image(allow_stretch=True, keep_ratio=True)
         self.HUDLayout.add_widget(self.DisplayImage)
         self.CameraCaptureSource = cv2.VideoCapture(0)
-        Clock.schedule_interval(self.update, 1 / 5)
+        Clock.schedule_interval(self.update, 10 / 5)
         return self.HUDLayout
 
     def update(self,dt):
