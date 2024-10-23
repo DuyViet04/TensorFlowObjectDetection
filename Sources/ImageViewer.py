@@ -89,7 +89,7 @@ class ImageViewer(BoxLayout):
 
 
 class FolderChooser(FloatLayout):
-    def __init__(self, **kwargs):
+    def __init__(self, bSelectFolder = True, **kwargs):
         super(FolderChooser, self).__init__(**kwargs)
 
         self.file_chooser = FileChooserIconView(dirselect=True, size_hint=(1, 0.75),
@@ -100,7 +100,9 @@ class FolderChooser(FloatLayout):
         self.select_btn = Button(on_release= self.select_folder,
                                text='Select Folder',size_hint=(1, 0.1),font_size='18sp',
                                pos_hint={'center_x': 0.5, 'center_y': 0})
-        #self.file_chooser.path = 'D:/'
+        if(bSelectFolder):
+            self.file_chooser.filters = ['*.']
+        self.file_chooser.path = 'D:/'
         '''preview duong dan file'''
         self.preview_folder_label = Label(text='No folder selected',
                                           font_size='18',
