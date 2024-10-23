@@ -52,6 +52,12 @@ class ImageViewer(BoxLayout):
         self.images = [os.path.join(self.folder_path, f) for f in os.listdir(self.folder_path) if
                        f.endswith(('.png', '.jpg', '.jpeg'))]
         self.update_image()
+
+    def ConstructImagePath(self, image_path):
+        # Tạo mảng chỉ chứa một hình ảnh được chọn
+        self.images = [image_path]
+        self.current_index = 0  # Đặt lại chỉ mục về 0
+        self.update_image()
     def update_image(self):
         # Kiểm tra nếu không có ảnh trong thư mục
         if not self.images:
@@ -91,34 +97,44 @@ class ImageViewer(BoxLayout):
 class FolderChooser(FloatLayout):
     def __init__(self, bSelectFolder = True, **kwargs):
         super(FolderChooser, self).__init__(**kwargs)
-
+        self.bSelectFolder= bSelectFolder
         self.file_chooser = FileChooserIconView(dirselect=True, size_hint=(1, 0.75),
-                                                on_touch_up=self.update_preview_folder,
                                                 pos_hint = {'center_x': 0.5, 'center_y': 0.5})
 
+
+        self.file_chooser.path = 'D:/'
         '''button to select folder actually'''
         self.select_btn = Button(on_release= self.select_folder,
                                text='Select Folder',size_hint=(1, 0.1),font_size='18sp',
                                pos_hint={'center_x': 0.5, 'center_y': 0})
+        self.preview_label = Label(text='No file selected', font_size='18',
+                                   pos_hint={'center_x': 0.5, 'center_y': 0.1})
         if(bSelectFolder):
             self.file_chooser.filters = ['*.']
+        else:
+            self.file_chooser.filters = ['*.png', '*.jpg', '*.jpeg']  # Cho phép chọn ảnh
         self.file_chooser.path = 'D:/'
-        '''preview duong dan file'''
+       # preview duong dan file
         self.preview_folder_label = Label(text='No folder selected',
                                           font_size='18',
                                           pos_hint={'center_x': 0.5, 'center_y': 0.1})
 
         self.add_widget(self.file_chooser)
         self.add_widget(self.select_btn)
-        self.add_widget(self.preview_folder_label)
+        self.add_widget(self.preview_label)
 
         self.selected_folder_path = None
 
-    '''function execute selecting folder'''
+    #function execute selecting folde
     def select_folder(self, instance):
         # lấy folder
         selected_folder = self.file_chooser.selection
         if selected_folder:
+            if (self.bSelectFolder==False):
+                image = cv2.imread(f'{selected_folder[0]}')
+                cv2.imshow('Image',image)
+                cv2.waitKey(0)
+                return
             print(selected_folder[0])
             self.ImagesViewer.current_index = 0
             self.ImagesViewer.ConstructFolderPath(selected_folder[0])
@@ -135,6 +151,7 @@ class FolderChooser(FloatLayout):
 
 
 
+
 '''Man hinh cho chuc nang xem anh'''
 class ImageViewerScreen(Screen):
     def __init__(self, **kwargs):
@@ -147,6 +164,8 @@ class ImageViewerScreen(Screen):
                                            text = "Select Open Dir",
                                            size_hint= (None,None),
                                            pos_hint = {'center_x': 0.9, 'center_y': 0.9})
+        self.SelectImage_Btn = Button(on_release=self.show_image_chooser, text="Select Image",
+                                      size_hint=(None, None), pos_hint={'center_x': 0.8, 'center_y': 0.9})
         self.RealTimeMode_Btn = Button(on_release = self.OpenRealtimeMode,
                                        text = "< Back",
                                        size_hint = (0.1,0.08),
@@ -155,17 +174,22 @@ class ImageViewerScreen(Screen):
         self.ImagesViewer = ImageViewer()
         self.MainLayout.add_widget(self.ImagesViewer)
         self.MainLayout.add_widget(self.OpenSelectFolder_Btn)
+        self.MainLayout.add_widget(self.SelectImage_Btn)  # Add new button
         self.MainLayout.add_widget(self.RealTimeMode_Btn)
 
         self.add_widget(self.MainLayout)
 
 
     def show_folder_chooser(self, instance):
-        PopupObjectContent = FolderChooser()
+        PopupObjectContent = FolderChooser(True)
         folder_chooser_popup = Popup(title='Chọn folder', content=PopupObjectContent, size_hint=(0.9, 0.9))
         PopupObjectContent.parent_popup = folder_chooser_popup
         PopupObjectContent.ImagesViewer = self.ImagesViewer
         folder_chooser_popup.open()
+    def show_image_chooser(self, instance):
+        PopupObjectContent = FolderChooser(False)
+        image_chooser_popup = Popup(title='Chọn ảnh', content=PopupObjectContent, size_hint=(0.9, 0.9))
+        image_chooser_popup.open()
     def OpenRealtimeMode(self,instance):
         print("Realtime Detect Mode")
         self.manager.transition.direction='right'  # Thiết lập hiệu ứng chuyển tiếp
