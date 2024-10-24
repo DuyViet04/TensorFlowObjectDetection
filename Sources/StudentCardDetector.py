@@ -1,5 +1,5 @@
 from kivy.uix.screenmanager import ScreenManager
-from Program import RealTimeDectector
+from WebcamRealtimeDectector import RealTimeDectector
 from ImageViewer import ImageViewerScreen
 from kivy.app import App
 
