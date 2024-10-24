@@ -7,6 +7,7 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.filechooser import FileChooserIconView
 from kivy.uix.popup import Popup
+import numpy as np
 import os
 import cv2
 from Detector import DetectImage
@@ -33,12 +34,12 @@ class ImageViewer(BoxLayout):
         button_layout.pos_hint = {'center_x': 0.5}  # Căn giữa button_layout
 
         # Nút Quay lại
-        self.prev_button = Button(text='Trước')
+        self.prev_button = Button(text='Previous')
         self.prev_button.bind(on_press=self.show_previous_image)
         button_layout.add_widget(self.prev_button)
 
         # Nút Tiếp theo
-        self.next_button = Button(text='Tiếp')
+        self.next_button = Button(text='Next')
         self.next_button.bind(on_press=self.show_next_image)
         button_layout.add_widget(self.next_button)
 
@@ -53,16 +54,15 @@ class ImageViewer(BoxLayout):
                        f.endswith(('.png', '.jpg', '.jpeg'))]
         self.update_image()
 
-    def ConstructImagePath(self, image_path):
-        # Tạo mảng chỉ chứa một hình ảnh được chọn
-        self.images = [image_path]
-        self.current_index = 0  # Đặt lại chỉ mục về 0
-        self.update_image()
     def update_image(self):
         # Kiểm tra nếu không có ảnh trong thư mục
         if not self.images:
-            self.image_widget.texture = None  # Xóa ảnh hiện tại
-            self.label.text = "Thư mục không có ảnh"  # Hiển thị thông báo
+            black_image = np.zeros((1, 1), dtype=np.uint8)
+            black_image = cv2.cvtColor(black_image, cv2.COLOR_BGR2RGB)
+            black_texture = Texture.create(size=(black_image.shape[1], black_image.shape[0]), colorfmt='rgb')
+            black_texture.blit_buffer(black_image.tobytes(), colorfmt='rgb', bufferfmt='ubyte')
+            self.image_widget.texture = black_texture  # Xóa ảnh hiện tại
+            self.label.text = "Folder does not contain images"  # Hiển thị thông báo
             return
 
         image_path = self.images[self.current_index]
@@ -80,8 +80,9 @@ class ImageViewer(BoxLayout):
             self.label.text = ""  # Xoá thông báo nếu có ảnh
         else:
             self.image_widget.texture = None  # Xoá ảnh nếu không thể tải
-            self.label.text = "Không thể tải ảnh"  # Hiển thị thông báo nếu không thể tải ảnh
+            self.label.text = "Can not load image, check path to image"  # Hiển thị thông báo nếu không thể tải ảnh
             print(f"Could not load image: {image_path}")
+
 
     def show_previous_image(self, instance):
         if self.images:  # Kiểm tra xem có ảnh hay không
@@ -107,21 +108,20 @@ class FolderChooser(FloatLayout):
         self.select_btn = Button(on_release= self.select_folder,
                                text='Select Folder',size_hint=(1, 0.1),font_size='18sp',
                                pos_hint={'center_x': 0.5, 'center_y': 0})
-        self.preview_label = Label(text='No file selected', font_size='18',
-                                   pos_hint={'center_x': 0.5, 'center_y': 0.1})
+
         if(bSelectFolder):
             self.file_chooser.filters = ['*.']
         else:
             self.file_chooser.filters = ['*.png', '*.jpg', '*.jpeg']  # Cho phép chọn ảnh
-        self.file_chooser.path = 'D:/'
-       # preview duong dan file
+
+        # preview duong dan file
         self.preview_folder_label = Label(text='No folder selected',
                                           font_size='18',
                                           pos_hint={'center_x': 0.5, 'center_y': 0.1})
 
         self.add_widget(self.file_chooser)
         self.add_widget(self.select_btn)
-        self.add_widget(self.preview_label)
+        self.add_widget(self.preview_folder_label)
 
         self.selected_folder_path = None
 
@@ -132,8 +132,14 @@ class FolderChooser(FloatLayout):
         if selected_folder:
             if (self.bSelectFolder==False):
                 image = cv2.imread(f'{selected_folder[0]}')
-                cv2.imshow('Image',image)
-                cv2.waitKey(0)
+                if image is not None:
+                    image = DetectImage(image,0.4)
+                    image = cv2.resize(image, (1300, 1100))
+                    cv2.imshow('Image',image)
+                    self.parent_popup.dismiss()
+                else:
+                    self.preview_folder_label.text = 'Please select to specific image file'
+                    print('path must be selected to specific file')
                 return
             print(selected_folder[0])
             self.ImagesViewer.current_index = 0
@@ -149,9 +155,6 @@ class FolderChooser(FloatLayout):
         else:
             self.preview_folder_label.text = 'No folder selected'
 
-
-
-
 '''Man hinh cho chuc nang xem anh'''
 class ImageViewerScreen(Screen):
     def __init__(self, **kwargs):
@@ -165,10 +168,11 @@ class ImageViewerScreen(Screen):
                                            size_hint= (None,None),
                                            pos_hint = {'center_x': 0.9, 'center_y': 0.9})
         self.SelectImage_Btn = Button(on_release=self.show_image_chooser, text="Select Image",
-                                      size_hint=(None, None), pos_hint={'center_x': 0.8, 'center_y': 0.9})
+                                      size_hint=(None, None),
+                                      pos_hint={'center_x': 0.9, 'center_y': 0.7})
         self.RealTimeMode_Btn = Button(on_release = self.OpenRealtimeMode,
                                        text = "< Back",
-                                       size_hint = (0.1,0.08),
+                                       size_hint = (None,None),
                                        pos_hint = {'center_x':0.05,'center_y' : 0.1})
 
         self.ImagesViewer = ImageViewer()
@@ -182,13 +186,14 @@ class ImageViewerScreen(Screen):
 
     def show_folder_chooser(self, instance):
         PopupObjectContent = FolderChooser(True)
-        folder_chooser_popup = Popup(title='Chọn folder', content=PopupObjectContent, size_hint=(0.9, 0.9))
+        folder_chooser_popup = Popup(title='Select Folder', content=PopupObjectContent, size_hint=(0.9, 0.9))
         PopupObjectContent.parent_popup = folder_chooser_popup
         PopupObjectContent.ImagesViewer = self.ImagesViewer
         folder_chooser_popup.open()
     def show_image_chooser(self, instance):
         PopupObjectContent = FolderChooser(False)
-        image_chooser_popup = Popup(title='Chọn ảnh', content=PopupObjectContent, size_hint=(0.9, 0.9))
+        image_chooser_popup = Popup(title='Select a Image', content=PopupObjectContent, size_hint=(0.9, 0.9))
+        PopupObjectContent.parent_popup = image_chooser_popup
         image_chooser_popup.open()
     def OpenRealtimeMode(self,instance):
         print("Realtime Detect Mode")
