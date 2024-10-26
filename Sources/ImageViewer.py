@@ -95,31 +95,31 @@ class ImageViewer(BoxLayout):
             self.update_image()
 
 
-class FolderChooser(FloatLayout):
+class PathChooser(FloatLayout):
     def __init__(self, bSelectFolder = True, **kwargs):
-        super(FolderChooser, self).__init__(**kwargs)
+        super(PathChooser, self).__init__(**kwargs)
         self.bSelectFolder= bSelectFolder
-        self.file_chooser = FileChooserIconView(dirselect=True, size_hint=(1, 0.75),
-                                                pos_hint = {'center_x': 0.5, 'center_y': 0.5})
+        self.path_chooser_component = FileChooserIconView(dirselect=True, size_hint=(1, 0.75),
+                                                          pos_hint = {'center_x': 0.5, 'center_y': 0.5})
 
 
-        self.file_chooser.path = 'D:/'
+        self.path_chooser_component.path = 'D:/'
         '''button to select folder actually'''
         self.select_btn = Button(on_release= self.select_folder,
                                text='Select Folder',size_hint=(1, 0.1),font_size='18sp',
                                pos_hint={'center_x': 0.5, 'center_y': 0})
 
         if(bSelectFolder):
-            self.file_chooser.filters = ['*.']
+            self.path_chooser_component.filters = ['*.']
         else:
-            self.file_chooser.filters = ['*.png', '*.jpg', '*.jpeg']  # Cho phép chọn ảnh
+            self.path_chooser_component.filters = ['*.png', '*.jpg', '*.jpeg']  # Cho phép chọn ảnh
 
         # preview duong dan file
         self.preview_folder_label = Label(text='No folder selected',
                                           font_size='18',
                                           pos_hint={'center_x': 0.5, 'center_y': 0.1})
 
-        self.add_widget(self.file_chooser)
+        self.add_widget(self.path_chooser_component)
         self.add_widget(self.select_btn)
         self.add_widget(self.preview_folder_label)
 
@@ -127,13 +127,13 @@ class FolderChooser(FloatLayout):
     #function execute selecting folde
     def select_folder(self, instance):
         # lấy folder
-        selected_folder = self.file_chooser.selection
+        selected_folder = self.path_chooser_component.selection
         if selected_folder:
             if (self.bSelectFolder==False):
                 image = cv2.imread(f'{selected_folder[0]}')
                 if image is not None:
                     image = DetectImage(image,0.4)
-                    image = cv2.resize(image, (1300, 1100))
+                    image = cv2.resize(image, (650, 550))
                     cv2.imshow('Image',image)
                     self.parent_popup.dismiss()
                 else:
@@ -148,7 +148,7 @@ class FolderChooser(FloatLayout):
             self.preview_folder_label.text = 'No folder selected'
 
     def update_preview_folder(self, filechooser, selection):
-        selected_folder = self.file_chooser.selection
+        selected_folder = self.path_chooser_component.selection
         if selected_folder:
             self.preview_folder_label.text = f'Selected folder: {selected_folder[0]}'
         else:
@@ -182,15 +182,14 @@ class ImageViewerScreen(Screen):
 
         self.add_widget(self.MainLayout)
 
-
     def show_folder_chooser(self, instance):
-        PopupObjectContent = FolderChooser(True)
+        PopupObjectContent = PathChooser()
         folder_chooser_popup = Popup(title='Select Folder', content=PopupObjectContent, size_hint=(0.9, 0.9))
         PopupObjectContent.parent_popup = folder_chooser_popup
         PopupObjectContent.ImagesViewer = self.ImagesViewer
         folder_chooser_popup.open()
     def show_image_chooser(self, instance):
-        PopupObjectContent = FolderChooser(False)
+        PopupObjectContent = PathChooser(False)
         image_chooser_popup = Popup(title='Select a Image', content=PopupObjectContent, size_hint=(0.9, 0.9))
         PopupObjectContent.parent_popup = image_chooser_popup
         image_chooser_popup.open()
