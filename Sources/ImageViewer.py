@@ -79,7 +79,7 @@ class ImageViewer(BoxLayout):
             self.image_widget.texture = texture
             self.label.text = ""  # Xoá thông báo nếu có ảnh
         else:
-            self.image_widget.texture = None  # Xoá ảnh nếu không thể tải
+            #self.image_widget.texture = None  # Xoá ảnh nếu không thể tải
             self.label.text = "Can not load image, check path to image"  # Hiển thị thông báo nếu không thể tải ảnh
             print(f"Could not load image: {image_path}")
 
@@ -123,7 +123,6 @@ class FolderChooser(FloatLayout):
         self.add_widget(self.select_btn)
         self.add_widget(self.preview_folder_label)
 
-        self.selected_folder_path = None
 
     #function execute selecting folde
     def select_folder(self, instance):

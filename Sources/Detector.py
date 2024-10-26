@@ -1,10 +1,10 @@
-import tensorflow as tf
 import numpy as np
 import cv2
 from tensorflow.lite.python.interpreter import Interpreter
 
+#input = (inputvalue - input mean)/input_std
 input_mean = 127.5
-input_std = 127.5
+input_std = 127.5 #input standard deviation
 def DetectImage(ImageToDetect, threshold):
     lblpath = '../ModelObjectDetections/SSDMobileNetv2/saved_model/labelmap.txt'
     with open(lblpath, 'r') as f:
@@ -18,17 +18,15 @@ def DetectImage(ImageToDetect, threshold):
     output_details = interpreter.get_output_details()
     height = input_details[0]['shape'][1]
     width = input_details[0]['shape'][2]
-
-    #ImageToDetect = cv2.imread(imgPath)
     imH, imW, _ = ImageToDetect.shape
+
     '''Tiền xử lý để đưa ảnh vào model'''
     image_rgb = cv2.cvtColor(ImageToDetect, cv2.COLOR_BGR2RGB)
     resized_image = cv2.resize(image_rgb, (width, height))
     input_ImageData = np.expand_dims(resized_image, axis=0)
-            # Normalize the image if required (depends on model)
-    bFloatInput = (input_details[0]['dtype'] == np.float32)
 
-    #input_data = input_data.astype(np.float32) / 255.0
+    # chuẩn hóa giá trị trong mảng ảnh để đúng với khoảng giá trị mà huấn luyện mô hình
+    bFloatInput = (input_details[0]['dtype'] == np.float32)
     if bFloatInput:
               input_ImageData = (np.float32(input_ImageData) - input_mean) / input_std
 
@@ -37,8 +35,6 @@ def DetectImage(ImageToDetect, threshold):
     interpreter.set_tensor(input_details[0]['index'], input_ImageData)
     # Run inference
     interpreter.invoke()
-
-
 
     boxes = interpreter.get_tensor(output_details[1]['index'])[0]
     scores = interpreter.get_tensor(output_details[0]['index'])[0]  # Confidence of detected objects
