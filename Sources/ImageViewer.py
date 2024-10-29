@@ -101,8 +101,7 @@ class PathChooser(FloatLayout):
         self.bSelectFolder= bSelectFolder
         self.path_chooser_component = FileChooserIconView(dirselect=True, size_hint=(1, 0.75),
                                                           pos_hint = {'center_x': 0.5, 'center_y': 0.5})
-
-
+        self.path_chooser_component.bind(on_touch_up=self.update_preview_folder)
         self.path_chooser_component.path = 'D:/'
         '''button to select folder actually'''
         self.select_btn = Button(on_release= self.select_folder,
@@ -122,8 +121,6 @@ class PathChooser(FloatLayout):
         self.add_widget(self.path_chooser_component)
         self.add_widget(self.select_btn)
         self.add_widget(self.preview_folder_label)
-
-
     #function execute selecting folde
     def select_folder(self, instance):
         # lấy folder
@@ -146,7 +143,6 @@ class PathChooser(FloatLayout):
             self.parent_popup.dismiss()
         else:
             self.preview_folder_label.text = 'No folder selected'
-
     def update_preview_folder(self, filechooser, selection):
         selected_folder = self.path_chooser_component.selection
         if selected_folder:
